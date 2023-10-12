@@ -8,7 +8,14 @@ int main() {
     cout << "Введите 2ю строку: ";
     getline(cin, s2);
 
-    cout << "Compare " << s1 << " и " << s2 << " = " << s1.compare(s2) << endl;
+    int result = s1.compare(s2);
+    if (result == 0) {
+        cout << "Строки равны" << endl;
+    } else if (result > 0) {
+        cout << s1 << " больше " << s2 << endl;
+    } else {
+       cout << s1 << " меньше " << s2 << endl; 
+    }
 
     return 0;
 }
