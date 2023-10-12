@@ -38,7 +38,7 @@ int main() {
                 cout << endl << "Удалено значение " << val << endl;
             }            
         } else {
-            break;
+            return 0;
         }
     }
 
