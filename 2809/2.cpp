@@ -89,7 +89,7 @@ int main() {
         else 
         {
             cout << "Неизвестная команда" << endl;
-            break;
+            return 0;
         }
     }
 
