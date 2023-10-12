@@ -2,12 +2,12 @@
 using namespace std;
 
 int main() {
-    string s;
+    string inputString;
     cout << "Введите строку: ";
-    getline(cin, s);
-    cout << "Исходная строка: " << s << endl;
-    cout << "front: " << s.front() << endl;
-    cout << "back: " << s.back() << endl;
+    getline(cin, inputString);
+    cout << "Исходная строка: " << inputString << endl;
+    cout << "front: " << inputString.front() << endl;
+    cout << "back: " << inputString.back() << endl;
 
     return 0;
 }
