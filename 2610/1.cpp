@@ -1,14 +1,14 @@
 #include <deque>
 #include <iostream>
 #include <time.h>
+#include <conio>
 
 using namespace std;
 
 #define width 5
 #define height 10
 
-
-void printField(vector<vector<char> > const &field) {
+void printField(vector<vector<char> > &field) {
     for (vector<char> row: field)
     {
         for (char val: row) {
@@ -18,21 +18,25 @@ void printField(vector<vector<char> > const &field) {
     }
 }
 
-int main() {
-    vector<vector<char> > field(width);
-    for (int i = 0 ; i < width ; i++) {
-        field[i].resize(height, '.');
-    }
- 
+void addApple(vector<vector<char> > &field) {
     srand(time(0));
     char apple = 'o';
     int appleWidth = (rand() % width);
     int appleHeight = (rand() % height);
-    field.at(appleWidth).at(appleWidth) = apple;
+    if (appleWidth != 0 && appleHeight != 0) {
+        field.at(appleWidth).at(appleWidth) = apple;
+    } else {
+        addApple(field);
+    }    
+}
 
+void initField(vector<vector<char> > &field) {
+    for (int i = 0 ; i < width ; i++) {
+        field[i].resize(height, '.');
+    }
+ 
     deque <pair<int, int> > snake;
-    snake.push_back(std::make_pair(0, 0));
-    snake.push_back(std::make_pair(1, 0));
+    snake.push_back(make_pair(0, 0));
 
     for (pair<int, int> segment : snake) {
         int x = segment.first;
@@ -40,7 +44,14 @@ int main() {
         field[x][y] = '#';
     }
 
+    addApple(field);
+
     printField(field);
-    
+}
+
+int main() {
+    vector<vector<char> > field(width);
+    initField(field);
+
     return 0;
 }
