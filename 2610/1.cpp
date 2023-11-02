@@ -25,10 +25,20 @@ int main() {
     }
  
     srand(time(0));
-    char apple = '#';
+    char apple = 'o';
     int appleWidth = (rand() % width);
     int appleHeight = (rand() % height);
     field.at(appleWidth).at(appleWidth) = apple;
+
+    deque <pair<int, int> > snake;
+    snake.push_back(std::make_pair(0, 0));
+    snake.push_back(std::make_pair(1, 0));
+
+    for (pair<int, int> segment : snake) {
+        int x = segment.first;
+        int y = segment.second;
+        field[x][y] = '#';
+    }
 
     printField(field);
     
