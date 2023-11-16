@@ -10,8 +10,8 @@
 
 using namespace std;
 
-#define WIDTH 15
-#define HEIGHT 15
+#define WIDTH 6
+#define HEIGHT 5
 
 struct segment {
     int x;
@@ -65,9 +65,7 @@ void addApple(vector<vector<char>> &field, deque<segment> &snake, apple &apple) 
     apple.x = (rand() % WIDTH);
     apple.y = (rand() % HEIGHT);
     for (segment segment : snake) {
-        int x = segment.x;
-        int y = segment.y;
-        if (apple.x == x && apple.y == y) {
+        if (apple.x == segment.x && apple.y == segment.y) {
             addApple(field, snake, apple);
             return;
         }
@@ -83,7 +81,7 @@ void init(vector<vector<char>> &field, deque<segment> &snake, apple &apple) {
         }
     }
 
-    snake.push_front(segment{0, 0, '>'});
+    snake.push_front(segment{0, 0, '#'});
     addApple(field, snake, apple);
 }
 
@@ -119,6 +117,9 @@ bool checkBorder(int pos, int border) {
 }
 
 bool checkSnakeCrash(vector<vector<char>> &field, int x, int y) {
+    if (x == -1 || x == WIDTH || y == -1 || y == HEIGHT) {
+        return  true;
+    }
     if (field[x][y] == '#') {
         return true;
     }
