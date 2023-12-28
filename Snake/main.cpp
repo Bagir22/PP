@@ -10,16 +10,32 @@
 
 using namespace std;
 
-#define WIDTH 6
-#define HEIGHT 5
 
-struct segment {
+const char SNAKE_SYMBOL = '#';
+const char FIELD_SYMBOL = '.';
+const char APPLE_SYMBOL = 'o';
+const int WIDTH = 15;
+const int HEIGHT = 15;
+const string LOSE_STRING = "Lose: ";
+const string WIN_STRING = "Win: ";
+const string SCORE_STRING = "Score: ";
+const char UP_KEY = 'w';
+const char DOWN_KEY = 's';
+const char RIGHT_KEY = 'd';
+const char LEFT_KEY = 'a';
+const int RIGHT = 1;
+const int LEFT = 2;
+const int UP = 3;
+const int DOWN = 4;
+const int SLEEP = 500000;
+
+struct Segment {
     int x;
     int y;
     char symbol;
 };
 
-struct apple {
+struct Apple {
     int x;
     int y;
 };
@@ -49,8 +65,8 @@ int kbhit(void) {
     return 0;
 }
 
-void printField(vector<vector<char> > &field) {
-    usleep(500000);
+void PrintField(vector<vector<char> > &field) {
+    usleep(SLEEP);
     system("clear");
     for (const vector<char>& row: field) {
         for (char val: row) {
@@ -60,53 +76,51 @@ void printField(vector<vector<char> > &field) {
     }
 }
 
-void addApple(vector<vector<char>> &field, deque<segment> &snake, apple &apple) {
+void AddApple(vector<vector<char>> &field, deque<Segment> &snake, Apple &apple) {
     srand(time(0));
     apple.x = (rand() % WIDTH);
     apple.y = (rand() % HEIGHT);
-    for (segment segment : snake) {
+    for (Segment segment : snake) {
         if (apple.x == segment.x && apple.y == segment.y) {
-            addApple(field, snake, apple);
+            AddApple(field, snake, apple);
             return;
         }
     }
 
-    field[apple.x][apple.y] = 'o';
+    field[apple.x][apple.y] = APPLE_SYMBOL;
 }
 
-void init(vector<vector<char>> &field, deque<segment> &snake, apple &apple) {
+void Init(vector<vector<char>> &field, deque<Segment> &snake, Apple &apple) {
     for (int i = 0; i < WIDTH; i++) {
-        for (int j = 0; j < HEIGHT; j++) {
-            field[i][j] = '.';
-        }
+        field[i].resize(HEIGHT, FIELD_SYMBOL);
     }
 
-    snake.push_front(segment{0, 0, '#'});
-    addApple(field, snake, apple);
+    snake.push_front(Segment{0, 0, SNAKE_SYMBOL});
+    AddApple(field, snake, apple);
 }
 
-void checkDirection(bool& directionChanged, int& direction) {
+void CheckDirection(bool& directionChanged, int& direction) {
     if (kbhit()) {
         char pressed = getchar();
-        if (pressed == 'w' && direction != 4) {
+        if (pressed == UP_KEY && direction != DOWN) {
             directionChanged = true;
-            direction = 3;
-        } else if (pressed == 's' && direction != 3) {
+            direction = UP;
+        } else if (pressed == DOWN_KEY && direction != UP) {
             directionChanged = true;
-            direction = 4;
-        }  else if (pressed == 'd' && direction != 2) {
+            direction = DOWN;
+        }  else if (pressed == RIGHT_KEY && direction != LEFT) {
             directionChanged = true;
-            direction = 1;
-        } else if (pressed == 'a' && direction != 1) {
+            direction = RIGHT;
+        } else if (pressed == LEFT_KEY && direction != RIGHT) {
             directionChanged = true;
-            direction = 2;
+            direction = LEFT;
         }
     } else {
         directionChanged = false;
     }
 }
 
-bool checkBorder(int pos, int border) {
+bool CheckBorder(int pos, int border) {
     if (border != -1 && pos >= border) {
         return true;
     } else if (border == -1 && pos <= border) {
@@ -116,67 +130,72 @@ bool checkBorder(int pos, int border) {
     return false;
 }
 
-bool checkSnakeCrash(vector<vector<char>> &field, int x, int y) {
+bool CheckSnakeCrash(vector<vector<char>> &field, int x, int y) {
     if (x == -1 || x == WIDTH || y == -1 || y == HEIGHT) {
         return  true;
     }
-    if (field[x][y] == '#') {
+    if (field[x][y] == SNAKE_SYMBOL) {
         return true;
     }
 
     return false;
 }
 
-void move(vector<vector<char>> &field, deque<segment> &snake, apple &apple, int direction, bool& crash) {
-    // direction 1 - > || 2 - < || 3 - ^ || 4 - V
-    int x = snake.front().x;
-    int y = snake.front().y;
-
-    bool crashBorder;
-    bool crashSnake;
-    if (direction == 1) {
-        crashBorder = checkBorder(y+1, HEIGHT);
-        crashSnake = checkSnakeCrash(field, x, y+1);
-        snake.push_front(segment{x, y+1, '#'});
-        snake.pop_back();
-    } else if (direction == 2) {
-        crashBorder = checkBorder(y-1, -1);
-        crashSnake = checkSnakeCrash(field, x, y-1);
-        snake.push_front(segment{x, y-1, '#'});
-        snake.pop_back();
-    } else if (direction == 3) {
-        crashBorder = checkBorder(x-1, -1);
-        crashSnake = checkSnakeCrash(field, x-1, y);
-        snake.push_front(segment{x-1, y, '#'});
-        snake.pop_back();
-    } else {
-        crashBorder = checkBorder(x+1, WIDTH);
-        crashSnake = checkSnakeCrash(field, x+1, y);
-        snake.push_front(segment{x+1, y, '#'});
-        snake.pop_back();
-    }
-
-    crash = crashBorder || crashSnake;
-    if (crash) {
-        return;
-    }
-
+void UpdateField(vector<vector<char>> &field, deque<Segment> &snake, Apple &apple) {
     for (int i = 0 ; i < WIDTH ; i++) {
         for (int j = 0 ; j < HEIGHT ; j++) {
-            field[i][j] = '.';
+            field[i][j] = FIELD_SYMBOL;
         }
     }
 
-    field[apple.x][apple.y] = 'o';
+    field[apple.x][apple.y] = APPLE_SYMBOL;
 
-    for (segment segment : snake) {
-        x = segment.x;
-        y = segment.y;
+    for (Segment segment : snake) {
+        int x = segment.x;
+        int y = segment.y;
         field[x][y] = segment.symbol;
     }
 }
 
-void checkEatApple(vector<vector<char>> &field, deque<segment> &snake, apple &apple, int direction) {
+bool CheckCrash(bool& crash, vector<vector<char>> &field, int& x, int& y, int direction) {
+    bool crashBorder;
+    bool crashSnake;
+
+    if (direction == RIGHT) {
+        y += 1;
+        crashBorder = CheckBorder(y, HEIGHT);
+    } else if (direction == LEFT) {
+        y -= 1;
+        crashBorder = CheckBorder(y, -1);
+    } else if (direction == UP) {
+        x -= 1;
+        crashBorder = CheckBorder(x, -1);
+    } else {
+        x += 1;
+        crashBorder = CheckBorder(x, WIDTH);
+    }
+
+    crashSnake = CheckSnakeCrash(field, x, y);
+
+    crash = crashBorder || crashSnake;
+    return crash;
+}
+
+void Move(vector<vector<char>> &field, deque<Segment> &snake, Apple &apple, int direction, bool& crash) {
+    int x = snake.front().x;
+    int y = snake.front().y;
+
+    if (CheckCrash(crash, field, x, y, direction)) {
+        return;
+    }
+
+    snake.push_front(Segment{x, y, SNAKE_SYMBOL});
+    snake.pop_back();
+
+    UpdateField(field, snake, apple);
+}
+
+void CheckEatApple(vector<vector<char>> &field, deque<Segment> &snake, Apple &apple, int direction) {
     int headX = snake.front().x;
     int headY = snake.front().y;
 
@@ -184,53 +203,59 @@ void checkEatApple(vector<vector<char>> &field, deque<segment> &snake, apple &ap
         int tailX = snake.back().x;
         int tailY = snake.back().y;
 
-        if (direction == 1) {
-            snake.push_back(segment{tailX, tailY-1, '#'});
-        } else if (direction == 2) {
-            snake.push_back(segment{tailX, tailY+1, '#'});
-        } else if (direction == 3) {
-            snake.push_back(segment{tailX+1, tailY, '#'});
-        } else {
-            snake.push_back(segment{tailX-1, tailY, '#'});
+        int newX = tailX;
+        int newY = tailY;
+
+        switch(direction) {
+            case RIGHT:
+                newY -= 1;
+            case LEFT:
+                newY += 1;
+            case UP:
+                newX += 1;
+            case DOWN:
+                newX -=1;
         }
 
-        addApple(field, snake, apple);
+        snake.push_back(Segment{newX, newY, SNAKE_SYMBOL});
+
+        AddApple(field, snake, apple);
     }
 }
 
-void start(vector<vector<char>> &field, deque<segment> &snake, apple &apple) {
+void Start(vector<vector<char>> &field, deque<Segment> &snake, Apple &apple) {
     bool crash = false;
     bool directionChanged = false;
-    int direction = 1; // 1 - > || 2 - < || 3 - ^ || 4 - V
+    int direction = RIGHT;
 
     while (!crash) {
         if (snake.size() == WIDTH * HEIGHT) {
             system("reset");
-            cout << "Win:" << endl;
-            cout << "Score: " << snake.size() << endl;
+            cout << WIN_STRING << endl;
+            cout << SCORE_STRING << snake.size() << endl;
 
             return;
         }
 
-        checkDirection(directionChanged, direction);
-        move(field, snake, apple, direction, crash);
-        checkEatApple(field, snake, apple, direction);
-        printField(field);
+        CheckDirection(directionChanged, direction);
+        Move(field, snake, apple, direction, crash);
+        CheckEatApple(field, snake, apple, direction);
+        PrintField(field);
     }
 
     if (crash) {
-        cout << "Lose:" << endl;
-        cout << "Score: " << snake.size() << endl;
+        cout << LOSE_STRING << endl;
+        cout << SCORE_STRING << snake.size() << endl;
     }
 }
 
 int main() {
     vector<vector<char>> field(WIDTH, vector<char>(HEIGHT));
-    deque<segment> snake;
-    apple apple{};
+    deque<Segment> snake;
+    Apple apple{};
 
-    init(field, snake, apple);
-    start(field, snake, apple);
+    Init(field, snake, apple);
+    Start(field, snake, apple);
 
     return 0;
 }
